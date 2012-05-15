@@ -330,6 +330,10 @@
     ;; Deschedule those which don't exist
     (dorun (map #(deschedule-missing % existing-ids) (map first CURRENT_SCHEDULES)))))
 
+(defn start-scheduler
+  []
+  (.start SCHEDULER))
+
 ;; Demo and testing
 
 (defn test-print-schedule
@@ -344,7 +348,7 @@
   "This demo shows how to add/remove schedule items using start-schedule and end-schedule.
    The schedule will be removed after 2 minutes in this demo."
   []
-  (.start SCHEDULER)
+  (start-scheduler)
   (let [item (scheduled-item (each-minute)
                              (test-print-fn "Scheduled using start-schedule"))
         sched-id (:_id item)]
@@ -357,8 +361,7 @@
 (defn run-schedules-test-polling
   "This demo shows how to add/remove/update schedules by polling a list of scheduled items for changes using refresh-schedules."
   []
-  (.start SCHEDULER)
-
+  (start-scheduler)
   (let [schedules
         [
          ;; Daily at 12:00am

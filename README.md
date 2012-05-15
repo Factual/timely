@@ -3,17 +3,18 @@
 Timely is useful for two main purposes:
 
 1. A clojure DSL for easier definition of cron strings
-2. A scheduling library using cron4j to execute a function according to a schedule timetable.
+2. A scheduling library using cron4j to execute a function according to a scheduled timetable.
 
-## Cron
+## Schedule DSL and Cron
 
-To get a cron string, define a schedule and use schedule-to-cron:
+Schedules are a structured way to represent cron syntax and are created using a DSL which reads much like an English sentence.  To get a cron string from a schedule, use schedule-to-cron.  For example:
 
-	(schedule-to-cron (each-minute))
+	timely.core> (schedule-to-cron (each-minute))
+	"* * * * *"
+	
+See the "Define Schedules" section below for more examples of the schedule DSL.
 
 ## Define Schedules
-
-Schedule definitions supported by cron syntax are fully supported by the clojure DSL.  Additionally, specific start and end times can be defined to ensure a repeated schedule is only valid for a certain time frame.
 
 Define a scheduled-item using a schedule and a function to be executed on the defined schedule. For example:
 
@@ -23,7 +24,9 @@ Define a scheduled-item using a schedule and a function to be executed on the de
 
 (daily) creates a schedule that runs each day at 12:00am.  (test-print-fn 1) returns a function that will print a message.  The combined scheduled-item will print the message each day at 12:00am.
 
-The following are further examples of the dsl for defining schedules, copied from core.clj:
+Specific start and end times can be optionally defined to ensure a repeated schedule is only valid for a certain time frame.  This is a feature recognized by the Timely scheduler but does not exist in cron string syntax.
+
+The following are further examples of the dsl for defining schedules:
 
          ;; Each day at 9:20am
          (scheduled-item (daily
@@ -103,7 +106,6 @@ The following are further examples of the dsl for defining schedules, copied fro
 
          ;; Schedule within a specific time range
          (scheduled-item
-          "specific-time-range"
           (each-minute
            (start-time (to-utc-timestamp (dates/date-time 2012 5 15 11 42)))
            (end-time (to-utc-timestamp (dates/date-time 2012 5 15 11 43))))
@@ -111,6 +113,8 @@ The following are further examples of the dsl for defining schedules, copied fro
           
           
 ## Run Schedules
+
+Use (start-scheduler) to enable scheduling in your application.
 
 Use start-schedule and end-schedule to start and stop schedules in your application:
 
@@ -129,3 +133,9 @@ Use refresh-schedules to repeatedly check for additions/updates/removals from a 
       ;; Use refresh-schedules to constantly check for additions/updates/removals from existing schedules already added
       (refresh-schedules schedules)
       (Thread/sleep 2500))
+      
+## Demo
+To run a demo of scheduling using the source:
+
+	lein run
+	
