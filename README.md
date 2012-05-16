@@ -18,9 +18,11 @@ See the "Define Schedules" section below for more examples of the schedule DSL.
 
 Define a scheduled-item using a schedule and a function to be executed on the defined schedule. For example:
 
-         ;; Daily at 12:00am
-         (scheduled-item (daily)
-                         (test-print-fn 1))
+````clojure
+;; Daily at 12:00am
+(scheduled-item (daily)
+(test-print-fn 1))
+````
 
 (daily) creates a schedule that runs each day at 12:00am.  (test-print-fn 1) returns a function that will print a message.  The combined scheduled-item will print the message each day at 12:00am.
 

@@ -1,9 +1,8 @@
 (ns timely.core
   (:require [clj-time.core :as dates])
   (:require [clj-time.coerce :as dates-coerce])
-  (:use [clojure.contrib.command-line :only (with-command-line)])
   (:use [clojure.pprint :only (pprint)])
-  (:require [clojure.string :as clojure.string])
+  (:require [clojure.string :only (join)])
   (:import [it.sauronsoftware.cron4j Scheduler]))
 
 (def all
@@ -41,7 +40,8 @@
                 month))
 
 (defn to-date-number
-  "Convert a named date field value of type \"type\" to a number representation"
+  "Convert a named date field value of type \"type\" to a number
+  representation"
   [type value]
   (if (map? value)
     (reduce #(assoc %1 (first %2) (to-date-number type (second %2))) {} value)
@@ -51,8 +51,8 @@
         value)))
 
 (defn create-schedule
-  "Create a schedule representation based on parameters.
-   Apply filters: at, on, per, start-time, end-time"
+  "Create a schedule representation based on parameters.  Apply
+  filters: at, on, per, start-time, end-time"
   [minute hour day month day-of-week & filters]
   (apply merge
          {:minute (to-date-number :minute minute)
@@ -69,57 +69,70 @@
   (apply (partial create-schedule all all all all all) filters))
 
 (defn hourly
-  "Create a schedule that runs every hour.
-   Optionally specify parameters using (at ...) to set the minute value at which this will run.
-   For example: (hourly (at (minute 10))) runs at the 10th minute after each hour.  If not specified, a default minute of 0 is used.
-   Filters available: at, on, per, start-time, end-time"
+  "Create a schedule that runs every hour.  Optionally specify
+   parameters using (at ...) to set the minute value at which this
+   will run.  For example: (hourly (at (minute 10))) runs at the 10th
+   minute after each hour.  If not specified, a default minute of 0 is
+   used.  Filters available: at, on, per, start-time, end-time"
   [& filters]
   (apply (partial create-schedule 0 all all all all) filters))
 
 (defn daily
-  "Create a schedule that runs once each day.
-   Optionally specify parameters using (at ...) to set the hour and minute values at which this will run.
-   For example: (daily (at (hour 9) (minute 30))) runs at 9:30am.  If not specified, a default hour and minute of 0 is used.
-   Filters available: at, on, per, start-time, end-time"
+  "Create a schedule that runs once each day.  Optionally specify
+   parameters using (at ...) to set the hour and minute values at
+   which this will run.  For example: (daily (at (hour 9) (minute
+   30))) runs at 9:30am.  If not specified, a default hour and minute
+   of 0 is used.  Filters available: at, on, per, start-time,
+   end-time"
   [& filters]
   (apply (partial create-schedule 0 0 all all all) filters))
 
 (defn weekly
-  "Create a schedule that runs once each week.
-   Optionally specify parameters using (on ...) to set the specific day of the week on which it will be run, as well as (at ...) to set the specific time at which this will run.
-   For example: (weekly (on :wed) (at (hour 9) (minute 10))) runs weekly on Wednesday at 9:10am.  If not specified, a default day of Sunday and a default hour and minute of 0 is used.
-   Filters available: at, on, per, start-time, end-time"
-  [& filters]
+  "Create a schedule that runs once each week.  Optionally specify
+   parameters using (on ...) to set the specific day of the week on
+   which it will be run, as well as (at ...) to set the specific time
+   at which this will run.  For example: (weekly (on :wed) (at (hour
+   9) (minute 10))) runs weekly on Wednesday at 9:10am.  If not
+   specified, a default day of Sunday and a default hour and minute of
+   0 is used.  Filters available: at, on, per, start-time, end-time"
+   [& filters]
   (apply (partial create-schedule 0 0 all all 0) filters))
 
 (defn monthly
-  "Create a schedule that runs once every month.
-   Optionally specify parameters using (on ...) or (at ...) to set the day, hour, and minute values at which this will run.
-   For example: (monthly (at (day 3) (hour 9) (minute 10))) runs on the 3rd at 9:10am on each month.  If not specified, a default hour and minute of 0 is used, and a default day of the 1st is used.
-   Apply additional filters: at, on, per, start-time, end-time"
-  [& filters]
+  "Create a schedule that runs once every month.  Optionally specify
+   parameters using (on ...) or (at ...) to set the day, hour, and
+   minute values at which this will run.  For
+   example: (monthly (at (day 3) (hour 9) (minute 10))) runs on the
+   3rd at 9:10am on each month.  If not specified, a default hour and
+   minute of 0 is used, and a default day of the 1st is used.  Apply
+   additional filters: at, on, per, start-time, end-time" [& filters]
   (apply (partial create-schedule 0 0 1 all all) filters))
 
 (defn set-schedule-values
-  "Sets schedule values as a list, converting to number representations"
+  "Sets schedule values as a list, converting to number
+  representations"
   [sched type values]
   (assoc sched type (map #(to-date-number type %) values)))
 
 (defn on-days
-  "Create a schedule to run on each day of values in the \"value\" parameter, which is a list.
-   For example, (on-days [1 15]) will run on every 1st and 15th of the month.  Apply filters as needed."
+  "Create a schedule to run on each day of values in the \"value\"
+  parameter, which is a list.  For example, (on-days [1 15]) will run
+  on every 1st and 15th of the month.  Apply filters as needed."
   [value & filters]
   (set-schedule-values (apply daily filters) :day value))
 
 (defn on-months
-  "Create a schedule to run on each month of values in the \"value\" parameter, which is a list.
-   For example, (on-months [6 12]) will run on every June and December.  Apply filters as needed."
+  "Create a schedule to run on each month of values in the \"value\"
+  parameter, which is a list.  For example, (on-months [6 12]) will
+  run on every June and December.  Apply filters as needed."
   [value & filters]
   (set-schedule-values (apply monthly filters) :month value))
 
 (defn on-days-of-week
-  "Create a schedule to run on each day of the week in the \"value\" parameter, which is a list.
-   For example, (on-days-of-week [:mon :fri]) will run on every Monday and Friday.  Apply filters as needed."
+  "Create a schedule to run on each day of the week in the \"value\"
+  parameter, which is a list.  For example, (on-days-of-week
+  [:mon :fri]) will run on every Monday and Friday.  Apply filters as
+  needed."
   [value & filters]
   (set-schedule-values (apply daily filters) :day-of-week value))
 
@@ -129,27 +142,32 @@
   {:interval interval})
 
 (defn per
-  "Returns a filter for a schedule to run on a recurring interval.  Specify a type and a value.
-   For example: (per :day 2) will define a filter for a schedule to only run every other day.
-   Note that this returns a filter and not a schedule."
+  "Returns a filter for a schedule to run on a recurring interval.
+  Specify a type and a value.  For example: (per :day 2) will define a
+  filter for a schedule to only run every other day.  Note that this
+  returns a filter and not a schedule."
   [type interval]
   {type (create-interval interval)})
 
 (defn every
-  "Returns a schedule which will be run on a recurring interval.  Specify a type and value.
-   For example: (every :minute 5) will create a schedule which runs every 5 minutes."
-  [type interval & filters]
+  "Returns a schedule which will be run on a recurring interval.
+  Specify a type and value.  For example: (every :minute 5) will
+  create a schedule which runs every 5 minutes."
+  [type interval &
+  filters]
   (merge (apply each-minute filters) (per type interval)))
 
 (defn on
-  "Returns a filter for a schedule to run on particular values for a date field of type \"type\".
-   For example: (on :weekdays :wed :fri) is a filter for a schedule to only run on Wednesday and Friday."
+  "Returns a filter for a schedule to run on particular values for a
+  date field of type \"type\".  For example: (on :weekdays :wed :fri)
+  is a filter for a schedule to only run on Wednesday and Friday."
   [& values]
   (apply merge {} values))
 
 (defn at
-  "Returns a filter for a schedule to run at specific date field values.
-   For example: (at (hour 9) (minute 10)) specifies a run at 9:10am."
+  "Returns a filter for a schedule to run at specific date field
+  values.  For example: (at (hour 9) (minute 10)) specifies a run at
+  9:10am."
   [& values]
   (apply merge {} values))
 
@@ -184,12 +202,16 @@
   {:day-of-week (map #(to-date-number :day-of-week %) day-of-week)})
 
 (defn start-time
-  "Filter to specify a start time from which the schedule will start.  It is inclusive, meaning a schedule set to run exactly at the start time will run at the start time."
+  "Filter to specify a start time from which the schedule will start.
+  It is inclusive, meaning a schedule set to run exactly at the start
+  time will run at the start time."
   [start-time]
   {:start-time start-time})
 
 (defn end-time
-  "Filter to specify an end time when the schedule will not longer run.  It is exclusive, meaning a schedule set to run exactly at the end time will not run at the end time."
+  "Filter to specify an end time when the schedule will not longer
+  run.  It is exclusive, meaning a schedule set to run exactly at the
+  end time will not run at the end time."
   [end-time]
   {:end-time end-time})
 
@@ -214,7 +236,8 @@
    (map? item) (if-let [interval (:interval item)]
                  (str "*/" interval)
                  (str (:start item) "-" (:end item)))
-   :else item))
+   (instance? Long item) item
+   :else "throw an error"))
 
 (defn schedule-to-cron
   "Create a cron string from a schedule"
@@ -222,10 +245,12 @@
   (clojure.string/join " " (map to-cron-entry [(sched :minute) (sched :hour) (sched :day) (sched :month) (sched :day-of-week)])))
 
 (defn scheduled-item
-  "Create a scheduled item using a schedule and a function to execute on intervals defined in the schedule.
-   Optionally include a custom schedule id in order to later remove and update schedules in a running instance."
+  "Create a scheduled item using a schedule and a function to execute
+on intervals defined in the schedule.  Optionally include a custom
+schedule id in order to later remove and update schedules in a running
+instance."
   ([sched-id schedule work]
-     {:_id sched-id
+     {:id sched-id
       :schedule schedule
       :work work})
   ([schedule work]
@@ -264,10 +289,11 @@
 
 
 (defn process-scheduled-item
-  "Executes work for a scheduled item, but only if within optionally specified start and end times."
+  "Executes work for a scheduled item, but only if within optionally
+  specified start and end times."
   [sched-id work start-time end-time]
   (if (and
-       (not (nil? end-time))
+       end-time
        (dates/before? (dates-coerce/from-long end-time)
                       (dates/now)))
     (end-schedule sched-id)
@@ -278,38 +304,40 @@
 
 (defn begin-schedule
   "Begin a schedule."
-  [_id work cron insert_time start-time end-time]
-  (let [cron-id (.schedule SCHEDULER cron #(process-scheduled-item _id work start-time end-time))]
+  [id work cron insert_time start-time end-time]
+  (let [cron-id (.schedule SCHEDULER cron #(process-scheduled-item id work start-time end-time))]
     (def CURRENT_SCHEDULES
       (assoc CURRENT_SCHEDULES
-        _id
+        id
         (schedule-entry insert_time cron-id)))))
 
 (defn start-schedule
-  "Adds the specified schedule to the scheduler based on start/end time restrictions."
-  [{:keys [_id schedule work insert_time]}]
+  "Adds the specified schedule to the scheduler based on start/end
+  time restrictions."
+  [{:keys [id schedule work insert_time]}]
   (let [start_time (:start-time schedule)
         end_time (:end-time schedule)
         cron (schedule-to-cron schedule)
         now (dates/now)]
-    (def CURRENT_SCHEDULES (assoc CURRENT_SCHEDULES _id {:insert_time insert_time}))
-    (if (and (not (nil? end_time))
+    (def CURRENT_SCHEDULES (assoc CURRENT_SCHEDULES id {:insert_time insert_time}))
+    (if (and end_time
              (dates/before? (dates-coerce/from-long end_time) now))
-      (println "End date is before current time, not scheduling:" _id "-" cron)
+      (println "End date is before current time, not scheduling:" id "-" cron)
       (do
-        (println "Starting schedule:" _id "-" cron)
-        (begin-schedule _id work cron insert_time start_time end_time)))))
+        (println "Starting schedule:" id "-" cron)
+        (begin-schedule id work cron insert_time start_time end_time)))))
 
 (defn process-schedule
-  "Determine if a schedule need to be added and add if necessary.
-   If a schedule needs to be updated based on a changed :insert_time, reload the schedule"
+  "Determine if a schedule need to be added and add if necessary.  If
+  a schedule needs to be updated based on a changed :insert_time,
+  reload the schedule"
   [sched existing-schedules]
-  (let [{:keys [_id insert_time]} sched]
-    (if (contains? existing-schedules _id)
+  (let [{:keys [id insert_time]} sched]
+    (if (contains? existing-schedules id)
       (when-not (= insert_time
-                   (:insert_time (existing-schedules _id)))
-        (println "Updating schedule that changed:" _id)
-        (end-schedule _id)
+                   (:insert_time (existing-schedules id)))
+        (println "Updating schedule that changed:" id)
+        (end-schedule id)
         (start-schedule sched))
       (do
         (start-schedule sched)))))
@@ -321,9 +349,11 @@
     (end-schedule sched-id)))
 
 (defn refresh-schedules
-  "Update the complete set of schedules Timely is processing.  Any changes in the schedule list from a previous refresh will add/remove/update schedules from Timely based on diffs."
+  "Update the complete set of schedules Timely is processing.  Any
+  changes in the schedule list from a previous refresh will
+  add/remove/update schedules from Timely based on diffs."
   [schedules]
-  (let [existing-ids (reduce #(assoc %1 (:_id %2) %2) {} schedules)]
+  (let [existing-ids (reduce #(assoc %1 (:id %2) %2) {} schedules)]
     ;; Add/update schedules that exist in the schedule list
     (dorun (map #(process-schedule % CURRENT_SCHEDULES) schedules))
     ;; Deschedule those which don't exist
@@ -344,13 +374,14 @@
   (partial test-print-schedule test_id))
 
 (defn run-schedules-test-simple
-  "This demo shows how to add/remove schedule items using start-schedule and end-schedule.
-   The schedule will be removed after 2 minutes in this demo."
+  "This demo shows how to add/remove schedule items using
+  start-schedule and end-schedule.  The schedule will be removed after
+  2 minutes in this demo."
   []
   (start-scheduler)
   (let [item (scheduled-item (each-minute)
                              (test-print-fn "Scheduled using start-schedule"))
-        sched-id (:_id item)]
+        sched-id (:id item)]
     (start-schedule item)
     (Thread/sleep (* 1000 60 2))
     (end-schedule sched-id)
