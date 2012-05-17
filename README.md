@@ -35,64 +35,78 @@ The following are further examples of the dsl for defining schedules:
 (scheduled-item (daily
                  (at (hour 9) (minute 20)))
                 (test-print-fn 2))
+
 ;; Each day at 12:00am in april
 (scheduled-item (daily
                  (on (month 4)))
                 (test-print-fn 3))
+
 ;; Each day at 9:20am in april
 (scheduled-item (daily
                  (at (hour 9) (minute 20))
                  (on (month :april)))
                 (test-print-fn 4))
+
 ;; Monthly on the 3rd at 9:20am
 (scheduled-item (monthly
                  (at (hour 9) (minute 20) (day 3)))
                 (test-print-fn 5))
+
 ;; Between months 4-9 on Mondays, each hour
 (scheduled-item (hourly
                  (on (day-of-week :mon)
                      (month (in-range 4 9))))
                 (test-print-fn 6))
+
 ;; Between months 4-9 on Mondays and Fridays, each hour
 (scheduled-item (hourly
                  (on (day-of-week :mon :fri)
                      (month (in-range :april :september))))
                 (test-print-fn 7))
+
 ;; On every 8am and 5pm
 (scheduled-item (daily
                  (at (hour 8 17)))
                 (test-print-fn 8))
+
 ;; On monday and wednesday at 9:20am
 (scheduled-item (on-days-of-week
                  [:mon :wed]
                  (at (hour 9) (minute 20)))
                 (test-print-fn 9))
+
 ;; Every 2 minutes
 (scheduled-item (every :minute
                        2)
                 (test-print-fn 10))
+
 ;; Every 2 minutes, but only every 2 days
 (scheduled-item (every :minute
                        2
                        (per :day 2))
                 (test-print-fn 11))
+
 ;; Every 2:01am on April 3rd
 (scheduled-item (create-schedule
                  1 2 3 4 all)
                 (test-print-fn 12))
+
 ;; Start time in the future
 (scheduled-item (each-minute
                  (start-time (*  (dates-coerce/to-long (dates/now)) 2)))
                 (test-print-fn 13))
+
 ;; End time already passed
 (scheduled-item (each-minute
                  (end-time 0))
                 (test-print-fn 14))
+
 ;; Is within range
 (scheduled-item (each-minute
                  (start-time 0)
                  (end-time (* (dates-coerce/to-long (dates/now)) 2)))
                 (test-print-fn 15))
+
 ;; Schedule within a specific time range
 (scheduled-item
  (each-minute
