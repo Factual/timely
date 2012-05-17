@@ -256,13 +256,6 @@ instance."
   ([schedule work]
      (scheduled-item (str (java.util.UUID/randomUUID)) schedule work)))
 
-(defn to-utc-timestamp
-  "Convert from clj-time date to a timestamp in the utc timezone"
-  [date]
-  (dates-coerce/to-long
-   (dates/from-time-zone date
-                         (dates/default-time-zone))))
-
 ;; Single scheduler for Timely
 (def SCHEDULER (Scheduler.))
 
@@ -286,7 +279,6 @@ instance."
             (println "Removing schedule:" sched-id)
             (.deschedule SCHEDULER cron-id)))
         (def CURRENT_SCHEDULES (dissoc CURRENT_SCHEDULES sched-id)))))
-
 
 (defn process-scheduled-item
   "Executes work for a scheduled item, but only if within optionally
@@ -327,43 +319,18 @@ instance."
         (println "Starting schedule:" id "-" cron)
         (begin-schedule id work cron insert_time start_time end_time)))))
 
-(defn process-schedule
-  "Determine if a schedule need to be added and add if necessary.  If
-  a schedule needs to be updated based on a changed :insert_time,
-  reload the schedule"
-  [sched existing-schedules]
-  (let [{:keys [id insert_time]} sched]
-    (if (contains? existing-schedules id)
-      (when-not (= insert_time
-                   (:insert_time (existing-schedules id)))
-        (println "Updating schedule that changed:" id)
-        (end-schedule id)
-        (start-schedule sched))
-      (do
-        (start-schedule sched)))))
-
-(defn deschedule-missing
-  "Remove a schedule that is now missing from the existing-ids."
-  [sched-id existing-ids]
-  (when-not (contains? existing-ids sched-id)
-    (end-schedule sched-id)))
-
-(defn refresh-schedules
-  "Update the complete set of schedules Timely is processing.  Any
-  changes in the schedule list from a previous refresh will
-  add/remove/update schedules from Timely based on diffs."
-  [schedules]
-  (let [existing-ids (reduce #(assoc %1 (:id %2) %2) {} schedules)]
-    ;; Add/update schedules that exist in the schedule list
-    (dorun (map #(process-schedule % CURRENT_SCHEDULES) schedules))
-    ;; Deschedule those which don't exist
-    (dorun (map #(deschedule-missing % existing-ids) (map first CURRENT_SCHEDULES)))))
-
 (defn start-scheduler
   []
   (.start SCHEDULER))
 
 ;; Demo and testing
+
+(defn to-utc-timestamp
+  "Convert from clj-time date to a timestamp in the utc timezone"
+  [date]
+  (dates-coerce/to-long
+   (dates/from-time-zone date
+                         (dates/default-time-zone))))
 
 (defn test-print-schedule
   [test_id]
