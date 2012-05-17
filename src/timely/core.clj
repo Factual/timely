@@ -319,6 +319,14 @@ instance."
         (println "Starting schedule:" id "-" cron)
         (begin-schedule id work cron insert_time start_time end_time)))))
 
+(defn update-schedule
+  "Updates a schedule by stopping the existing schedule and running it
+  with the new settings"
+  [sched]
+  (let [{:keys [id insert_time]} sched]
+    (end-schedule id)
+    (start-schedule sched)))
+
 (defn start-scheduler
   []
   (.start SCHEDULER))
