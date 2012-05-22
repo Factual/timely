@@ -314,7 +314,9 @@ instance."
 (def SCHEDULER (Scheduler.))
 
 (defn end-schedule
-  "Removes a schedule from Timely by descheduling"
+  "Removes a schedule from Timely by descheduling based on a schedule
+  id.  The schedule id is a unique identifier that was generated upon
+  starting a schedule."
   [sched-id]
   (info "Ending schedule:" sched-id)
   (.deschedule SCHEDULER sched-id))
@@ -334,13 +336,14 @@ instance."
       (info "Waiting to start a schedule"))))
 
 (defn begin-schedule
-  "Begin a schedule."
+  "Begin a schedule, returning a unique id for the added schedule."
   [work cron start-time end-time]
   (.schedule SCHEDULER cron #(process-scheduled-item work start-time end-time)))
 
 (defn start-schedule
   "Adds the specified schedule to the scheduler based on start/end
-  time restrictions."
+  time restrictions.  Returns a unique identifier for this schedule
+  that can be used to later deschedule."
   [{:keys [schedule work]}]
   (let [start_time (:start-time schedule)
         end_time (:end-time schedule)
