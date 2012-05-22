@@ -1,7 +1,6 @@
 (ns timely.core
   (:require [clj-time.core :as dates])
   (:require [clj-time.coerce :as dates-coerce])
-  (:use [clojure.pprint :only (pprint)])
   (:require [clojure.string :only (join)])
   (:import [it.sauronsoftware.cron4j Scheduler])
   (:use [clojure.tools.logging :only (info debug error)]))
@@ -303,9 +302,7 @@
 
 (defn scheduled-item
   "Create a scheduled item using a schedule and a function to execute
-on intervals defined in the schedule.  Optionally include a custom
-schedule id in order to later remove and update schedules in a running
-instance."
+on intervals defined in the schedule."
   ([schedule work]
      {:schedule schedule
       :work work}))
