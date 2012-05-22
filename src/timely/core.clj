@@ -381,9 +381,8 @@ instance."
   []
   (start-scheduler)
   (let [item (scheduled-item
-                             (each-minute)
-                             (test-print-fn "Scheduled using start-schedule"))]
-
+              (each-minute)
+              (test-print-fn "Scheduled using start-schedule"))]
     (let [sched-id (start-schedule item)]
       (Thread/sleep (* 1000 60 2))
       (end-schedule sched-id)))

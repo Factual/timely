@@ -122,18 +122,11 @@ Use (start-scheduler) to enable scheduling in your application.
 Use start-schedule and end-schedule to start and stop schedules in your application:
 
 ````clojure
-(let [item (scheduled-item (each-minute)
-    	                   (test-print-fn "Scheduled using start-schedule"))
-     sched-id (:_id item)]
-    (start-schedule item)
+(start-scheduler)
+(let [item (scheduled-item
+            (each-minute)
+            (test-print-fn "Scheduled using start-schedule"))]
+  (let [sched-id (start-schedule item)]
     (Thread/sleep (* 1000 60 2))
-    (end-schedule sched-id)
-	(while true
-		(Thread/sleep (* 1000 60))))
+    (end-schedule sched-id)))
 ````
-      
-## Demo
-To run a demo of scheduling using the source:
-
-	lein run
-	
