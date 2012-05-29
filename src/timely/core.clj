@@ -6,7 +6,7 @@
   (:use [clojure.tools.logging :only (info debug error)]))
 
 (def all
-  :all)
+  "all")
 
 (defn to-day-of-week
   "Convert a named day of the week to a number representation"
