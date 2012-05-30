@@ -38,6 +38,10 @@ The following are further examples of the dsl for defining schedules:
 
 ;; Each day at 12:00am in april
 (scheduled-item (daily
+;; [LEO] I like that months can be specified as (month (in-range :april :september)))). I don't like that you can do
+;; (month (in-range 4 9)))). Given Java's history with weird offsets in java.util.Calendar
+;; (I believe January is indexed to 0, not 1), I would remove the ability to use numbers -- otherwise people who migrated
+;; from Java to Clojure are likely to make silly errors that are hard to find.
                  (on (month 4)))
                 (test-print-fn 3))
 
@@ -61,13 +65,22 @@ The following are further examples of the dsl for defining schedules:
 ;; Between months 4-9 on Mondays and Fridays, each hour
 (scheduled-item (hourly
                  (on (day-of-week :mon :fri)
+;; [LEO] I notice you can do (in-range :april :september). Can you do (in-range :monday :friday) as well?
                      (month (in-range :april :september))))
                 (test-print-fn 7))
 
+;; [LEO] On a side note, A reference sheet (in addition to examples) would be great... otherwise one has to
+;; look at the code to understand what will work and what will not
+
 ;; On every 8am and 5pm
 (scheduled-item (daily
+;; [LEO] commas might be useful here so that it's immediately clear that you're doing hours 8 and 17, not 8 thru 17.
+;; So maybe (at (hour 8, 17)))? Maybe the example throws me off because 8am-5pm sounds like regular working hours,
+;; and I'm used to seeing those in a range instead of as a pair.
                  (at (hour 8 17)))
                 (test-print-fn 8))
+
+;; [LEO] Any thoughts on supporting am and pm? Something like (at (hour (am 8) (pm 5))? I don't know if that's useful or tacky.
 
 ;; On monday and wednesday at 9:20am
 (scheduled-item (on-days-of-week
@@ -83,6 +96,7 @@ The following are further examples of the dsl for defining schedules:
 ;; Every 2 minutes, but only every 2 days
 (scheduled-item (every :minute
                        2
+;; [LEO] This is the syntax for "every 2 days"? I find it confusing. It looks much more like "twice per day" than "every 2 days"
                        (per :day 2))
                 (test-print-fn 11))
 
@@ -93,9 +107,16 @@ The following are further examples of the dsl for defining schedules:
 
 ;; Start time in the future
 (scheduled-item (each-minute
+;; [LEO] I think the syntax here loses some of it's magic. Up to know, everything looks like English
+;; (:every 2 minutes, (at (hour 9)), etc), but now you are doing raw data/time manipulation. Can similar syntax be
+;; used for start times? Something like:
+;;    (starting (at (month :june) (day 1))) ;; start on june 1st
+;;             or
+;;    (starting (in (hours 9) (minutes 5))) ;; start 9:05 from now
                  (start-time (*  (dates-coerce/to-long (dates/now)) 2)))
                 (test-print-fn 13))
 
+;; [LEO] what's the purpose of this example?
 ;; End time already passed
 (scheduled-item (each-minute
                  (end-time 0))
@@ -103,7 +124,9 @@ The following are further examples of the dsl for defining schedules:
 
 ;; Is within range
 (scheduled-item (each-minute
+;; [LEO] how about a shortcut for this use case? Instead of (start-time 0) maybe (start-immediately) (which calls (start-time 0) under the hood)
                  (start-time 0)
+;; [LEO] also, a shortcut for (run-forever) might be nice)
                  (end-time (* (dates-coerce/to-long (dates/now)) 2)))
                 (test-print-fn 15))
 

@@ -5,20 +5,26 @@
   (:import [it.sauronsoftware.cron4j Scheduler])
   (:use [clojure.tools.logging :only (info debug error)]))
 
+;; [LEO] I don't know what the right convention is in Clojure, but should this be :all instead of "all"?
 (def all
   "all")
 
 (defn to-day-of-week
+  ;; [LEO] actually, if day of week is "all", you don't return a number, right?
   "Convert a named day of the week to a number representation"
   [day-of-week]
   (if (= all day-of-week)
     day-of-week
     (if (instance? Long day-of-week)
+      ;; [LEO] same as with letting people index months directly, this seems like it could be error prone.
+      ;; Some might assume Sunday is 0, some might assume it's 1, some (non-US developers) might assume
+      ;; Monday is 0 and Sunday is 6, etc)
       (if (and (>= day-of-week 0)
                (<= day-of-week 6))
         day-of-week
         (throw ( Exception. (str "Day of week is out of accepted range: " day-of-week))))
       (condp = day-of-week
+        ;; [LEO] OCD comment: how about Tue and Thu so that all day of week keywords are 3 letters?
         :sun 0
         :mon 1
         :tues 2
@@ -29,16 +35,19 @@
         (throw ( Exception. (str "Not a valid day of the week: " day-of-week)))))))
 
 (defn to-month
+  ;; [LEO] if month is "all", you don't return a number, right? I'm going to stop making this comment, but it
+  ;; applies to to-minute, etc. as well.
   "Convert a named month to a number representation"
   [month]
   (if (= all month)
     month
     (if (instance? Long month)
-      (if (and (>= month 1)
+      (if (and (>= month 1)  ;; [LEO] I commented on this in the README, but 1-12 is different from java (which is 0-11)
                (<= month 12))
         month
-        (throw ( Exception. (str "Month is out of accepted range: " month))))
+        (throw ( Exception. (str "Month is out of accepted range: " month)))) ;; [LEO] would be good to return expected range, too
       (condp = month
+        ;; [LEO] OCD comment: how about jan/feb/mar/apr/etc. so that all month keywords are 3 letters?
         :january 1
         :february 2
         :march 3
@@ -60,9 +69,10 @@
     minute
     (if (instance? Long minute)
       (if (and (>= minute 0)
-               (<= minute 60))
+               (<= minute 60)) ;; [LEO] should 60 be a supported minute? It seems like you should either support 0-59,
+                               ;; or you should support anything >=0 (e.g. "every 75 minutes")
         minute
-        (throw ( Exception. (str "Minute is out of accepted range: " minute))))
+        (throw ( Exception. (str "Minute is out of accepted range: " minute))));; [LEO] would be good to return expected range, too
       (throw ( Exception. (str "Not a valid minute: " minute))))))
 
 (defn to-hour
@@ -72,9 +82,9 @@
     hour
     (if (instance? Long hour)
       (if (and (>= hour 0)
-               (<= hour 24))
+               (<= hour 24)) ;; [LEO] same comment as in to-minute... either allow 0-59, or 0+
         hour
-        (throw ( Exception. (str "Hour is out of accepted range: " hour))))
+        (throw ( Exception. (str "Hour is out of accepted range: " hour))));; [LEO] would be good to return expected range, too
       (throw ( Exception. (str "Not a valid hour: " hour))))))
 
 (defn to-day
@@ -84,9 +94,9 @@
     day
     (if (instance? Long day)
       (if (and (>= day 0)
-               (<= day 31))
+               (<= day 31)) ;; [LEO] same comment as in to-minute... either allow 0-30 or 0+ (or 1-31 or 1+ depending on indexing)
         day
-        (throw ( Exception. (str "Day is out of accepted range: " day))))
+        (throw ( Exception. (str "Day is out of accepted range: " day))));; [LEO] would be good to return expected range, too
       (throw ( Exception. (str "Not a valid day: " day))))))
 
 (defn to-date-number
@@ -201,6 +211,8 @@
   filter for a schedule to only run every other day.  Note that this
   returns a filter and not a schedule."
   [type interval]
+  ;; [LEO] any time you let the user set the type, you should validate the type. E.g. if someone sends :hr instead of
+  ;; :hour, this code will "work" but the scheduling won't work as expected.
   {type (create-interval interval)})
 
 (defn every
@@ -358,7 +370,7 @@ on intervals defined in the schedule."
   (.start SCHEDULER))
 
 ;; Demo and testing
-
+;; [LEO] should this be here, or in a separate test/sample file?
 (defn to-utc-timestamp
   "Convert from clj-time date to a timestamp in the utc timezone"
   [date]
