@@ -5,107 +5,113 @@
   (:import [it.sauronsoftware.cron4j Scheduler])
   (:use [clojure.tools.logging :only (info debug error)]))
 
-(def all
-  "all")
+(def time-types
+  (hash-set :minute :hour :day :month :day-of-week))
+
+(defn valid-time-type
+  "Convert a time type to a valid value, else an exception is thrown"
+  [type]
+  (let [type-transformed (condp = type
+                                :minutes :minute
+                                :hours :hour
+                                :days :day
+                                :months :month
+                                :days-of-week :day-of-week
+                                type)]
+    (if (contains? time-types type-transformed)
+      type-transformed
+      (throw ( Exception. (str "Not a valid time type: " type))))))
 
 (defn to-day-of-week
   "Convert a named day of the week to a number representation"
   [day-of-week]
-  (if (= all day-of-week)
+  (if (= :all day-of-week)
     day-of-week
-    (if (instance? Long day-of-week)
-      (if (and (>= day-of-week 0)
-               (<= day-of-week 6))
-        day-of-week
-        (throw ( Exception. (str "Day of week is out of accepted range: " day-of-week))))
-      (condp = day-of-week
+    (condp = day-of-week
         :sun 0
         :mon 1
-        :tues 2
+        :tue 2
         :wed 3
-        :thurs 4
+        :thu 4
         :fri 5
         :sat 6
-        (throw ( Exception. (str "Not a valid day of the week: " day-of-week)))))))
+        (throw ( Exception. (str "Not a valid day of the week: " day-of-week))))))
 
 (defn to-month
   "Convert a named month to a number representation"
   [month]
-  (if (= all month)
+  (if (= :all month)
     month
-    (if (instance? Long month)
-      (if (and (>= month 1)
-               (<= month 12))
-        month
-        (throw ( Exception. (str "Month is out of accepted range: " month))))
-      (condp = month
-        :january 1
-        :february 2
-        :march 3
-        :april 4
+    (condp = month
+        :jan 1
+        :feb 2
+        :mar 3
+        :apr 4
         :may 5
-        :june 6
-        :july 7
-        :august 8
-        :september 9
-        :october 10
-        :november 11
-        :december 12
-        (throw ( Exception. (str "Not a valid month: " month)))))))
+        :jun 6
+        :jul 7
+        :aug 8
+        :sep 9
+        :oct 10
+        :nov 11
+        :dec 12
+        (throw ( Exception. (str "Not a valid month: " month))))))
 
 (defn to-minute
-  "Convert to a valid minute number represenatation"
+  "Convert to a valid minute number representation"
   [minute]
-  (if (= all minute)
+  (if (= :all minute)
     minute
     (if (instance? Long minute)
       (if (and (>= minute 0)
-               (<= minute 60))
+               (<= minute 59))
         minute
-        (throw ( Exception. (str "Minute is out of accepted range: " minute))))
+        (throw ( Exception. (str "Minute is out of accepted range: " minute ".  Accepted range is 0-59"))))
       (throw ( Exception. (str "Not a valid minute: " minute))))))
 
 (defn to-hour
-  "Convert to a valid hour number represenatation"
+  "Convert to a valid hour number representation"
   [hour]
-  (if (= all hour)
+  (if (= :all hour)
     hour
     (if (instance? Long hour)
       (if (and (>= hour 0)
-               (<= hour 24))
+               (<= hour 23))
         hour
-        (throw ( Exception. (str "Hour is out of accepted range: " hour))))
+        (throw ( Exception. (str "Hour is out of accepted range: " hour ".  Accepted range is 0-23"))))
       (throw ( Exception. (str "Not a valid hour: " hour))))))
 
 (defn to-day
-  "Convert to a valid day number represenatation"
+  "Convert to a valid day number representation"
   [day]
-  (if (= all day)
+  (if (= :all day)
     day
     (if (instance? Long day)
-      (if (and (>= day 0)
+      (if (and (>= day 1)
                (<= day 31))
         day
-        (throw ( Exception. (str "Day is out of accepted range: " day))))
+        (throw ( Exception. (str "Day is out of accepted range: " day ".  Accepted range is 1-31"))))
       (throw ( Exception. (str "Not a valid day: " day))))))
 
 (defn to-date-number
   "Convert a named date field value of type \"type\" to a number
   representation"
   [type value]
-  (if (map? value)
-    (reduce #(assoc %1 (first %2) (to-date-number type (second %2))) {} value)
-    (condp = type
+  (if (contains? time-types type)
+    (if (map? value)
+      (reduce #(assoc %1 (first %2) (to-date-number type (second %2))) {} value)
+      (condp = type
         :day-of-week (to-day-of-week value)
         :month (to-month value)
         :minute (to-minute value)
         :hour (to-hour value)
         :day (to-day value)
-        value)))
+        value))
+    (throw ( Exception. (str "Not a valid time type: " type)))))
 
 (defn create-schedule
   "Create a schedule representation based on parameters.  Apply
-  filters: at, on, per, start-time, end-time"
+  filters: at, on, each, start-time, end-time"
   [minute hour day month day-of-week & filters]
   (apply merge
          {:minute (to-date-number :minute minute)
@@ -117,28 +123,28 @@
 
 (defn each-minute
   "Create a schedule that runs every minute.
-   Filters available: on, per, start-time, end-time"
+   Filters available: on, each, start-time, end-time"
   [& filters]
-  (apply (partial create-schedule all all all all all) filters))
+  (apply (partial create-schedule :all :all :all :all :all) filters))
 
 (defn hourly
   "Create a schedule that runs every hour.  Optionally specify
    parameters using (at ...) to set the minute value at which this
    will run.  For example: (hourly (at (minute 10))) runs at the 10th
    minute after each hour.  If not specified, a default minute of 0 is
-   used.  Filters available: at, on, per, start-time, end-time"
+   used.  Filters available: at, on, each, start-time, end-time"
   [& filters]
-  (apply (partial create-schedule 0 all all all all) filters))
+  (apply (partial create-schedule 0 :all :all :all :all) filters))
 
 (defn daily
   "Create a schedule that runs once each day.  Optionally specify
    parameters using (at ...) to set the hour and minute values at
    which this will run.  For example: (daily (at (hour 9) (minute
    30))) runs at 9:30am.  If not specified, a default hour and minute
-   of 0 is used.  Filters available: at, on, per, start-time,
+   of 0 is used.  Filters available: at, on, each, start-time,
    end-time"
   [& filters]
-  (apply (partial create-schedule 0 0 all all all) filters))
+  (apply (partial create-schedule 0 0 :all :all :all) filters))
 
 (defn weekly
   "Create a schedule that runs once each week.  Optionally specify
@@ -147,9 +153,9 @@
    at which this will run.  For example: (weekly (on :wed) (at (hour
    9) (minute 10))) runs weekly on Wednesday at 9:10am.  If not
    specified, a default day of Sunday and a default hour and minute of
-   0 is used.  Filters available: at, on, per, start-time, end-time"
+   0 is used.  Filters available: at, on, each, start-time, end-time"
    [& filters]
-  (apply (partial create-schedule 0 0 all all 0) filters))
+  (apply (partial create-schedule 0 0 :all :all 0) filters))
 
 (defn monthly
   "Create a schedule that runs once every month.  Optionally specify
@@ -158,9 +164,9 @@
    example: (monthly (on (day 3)) (at (hour 9) (minute 10))) runs on
    the 3rd at 9:10am on each month.  If not specified, a default hour
    and minute of 0 is used, and a default day of the 1st is used.
-   Apply additional filters: at, on, per, start-time, end-time"
+   Apply additional filters: at, on, each, start-time, end-time"
   [& filters]
-  (apply (partial create-schedule 0 0 1 all all) filters))
+  (apply (partial create-schedule 0 0 1 :all :all) filters))
 
 (defn set-schedule-values
   "Sets schedule values as a list, converting to number
@@ -195,21 +201,20 @@
   [interval]
   {:interval interval})
 
-(defn per
+(defn each
   "Returns a filter for a schedule to run on a recurring interval.
-  Specify a type and a value.  For example: (per :day 2) will define a
-  filter for a schedule to only run every other day.  Note that this
+  Specify a type and a value.  For example: (each 2 :day) will define a
+  filter for a schedule to only run every 2 days.  Note that this
   returns a filter and not a schedule."
-  [type interval]
-  {type (create-interval interval)})
+  [interval type]
+  {(valid-time-type type) (create-interval interval)})
 
 (defn every
   "Returns a schedule which will be run on a recurring interval.
-  Specify a type and value.  For example: (every :minute 5) will
+  Specify a type and value.  For example: (every 5 :minute) will
   create a schedule which runs every 5 minutes."
-  [type interval &
-  filters]
-  (merge (apply each-minute filters) (per type interval)))
+  [interval type & filters]
+  (merge (apply each-minute filters) (each interval type)))
 
 (defn on
   "Returns a filter for a schedule to run on particular values for a
@@ -229,6 +234,24 @@
   "Specify a range for a particular date field of type \"type\"."
   [start end]
   {:start start :end end})
+
+(defn am
+  [hour]
+  (if (= hour 12)
+    0
+    (if (and (< hour 12)
+             (>= hour 1))
+      hour
+      (throw ( Exception. (str "Not a valid am hour: " hour))))))
+
+(defn pm
+  [hour]
+  (if (= hour 12)
+    12
+    (if (and (< hour 12)
+             (>= hour 1))
+      (+ hour 12)
+      (throw ( Exception. (str "Not a valid pm hour: " hour))))))
 
 (defn hour
   "Hour representation"
@@ -287,7 +310,7 @@
   "Convert a schedule date field value representation to a cron entry"
   [item]
   (cond
-   (= all item) "*"
+   (= :all item) "*"
    (or (seq? item) (vector? item)) (clojure.string/join "," (map to-cron-entry item))
    (map? item) (if-let [interval (:interval item)]
                  (str "*/" interval)
@@ -356,35 +379,3 @@ on intervals defined in the schedule."
 (defn start-scheduler
   []
   (.start SCHEDULER))
-
-;; Demo and testing
-
-(defn to-utc-timestamp
-  "Convert from clj-time date to a timestamp in the utc timezone"
-  [date]
-  (dates-coerce/to-long
-   (dates/from-time-zone date
-                         (dates/default-time-zone))))
-
-(defn test-print-schedule
-  [test_id]
-  (println (str (java.util.Date.) ": Item scheduled - " test_id)))
-
-(defn test-print-fn
-  [test_id]
-  (partial test-print-schedule test_id))
-
-(defn run-schedules-test-simple
-  "This demo shows how to add/remove schedule items using
-  start-schedule and end-schedule.  The schedule will be removed after
-  2 minutes in this demo."
-  []
-  (start-scheduler)
-  (let [item (scheduled-item
-              (each-minute)
-              (test-print-fn "Scheduled using start-schedule"))]
-    (let [sched-id (start-schedule item)]
-      (Thread/sleep (* 1000 60 2))
-      (end-schedule sched-id)))
-  (while true
-    (Thread/sleep (* 1000 60))))
