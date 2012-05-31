@@ -82,13 +82,13 @@ The following are further examples of the dsl for defining schedules:
 
 ;; Every 2 minutes
 (scheduled-item (every 2
-                       :minute)
+                       :minutes)
                 (test-print-fn 10))
 
 ;; Every 2 minutes, but only every 2 days
 (scheduled-item (every 2
-                       :minute
-                       (each 2 :day))
+                       :minutes
+                       (each 2 :days))
                 (test-print-fn 11))
 
 ;; Every 2:01am on April 3rd

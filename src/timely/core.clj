@@ -8,6 +8,20 @@
 (def time-types
   (hash-set :minute :hour :day :month :day-of-week))
 
+(defn valid-time-type
+  "Convert a time type to a valid value, else exception is thrown"
+  [type]
+  (let [type-transformed (condp = type
+                                :minutes :minute
+                                :hours :hour
+                                :days :day
+                                :months :month
+                                :days-of-week :day-of-week
+                                type)]
+    (if (contains? time-types type-transformed)
+      type-transformed
+      (throw ( Exception. (str "Not a valid time type: " type))))))
+
 (def all
   "all")
 
@@ -196,9 +210,7 @@
   filter for a schedule to only run every 2 days.  Note that this
   returns a filter and not a schedule."
   [interval type]
-  (if (contains? time-types type)
-    {type (create-interval interval)}
-    (throw ( Exception. (str "Not a valid time type: " type)))))
+  {(valid-time-type type) (create-interval interval)})
 
 (defn every
   "Returns a schedule which will be run on a recurring interval.
