@@ -93,7 +93,7 @@ The following are further examples of the dsl for defining schedules:
 
 ;; Every 2:01am on April 3rd
 (scheduled-item (create-schedule
-                 1 2 3 :apr all)
+                 1 2 3 :apr :all)
                 (test-print-fn 12))
 
 ;; Schedule only valid within a specific time range
