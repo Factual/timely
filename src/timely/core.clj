@@ -9,7 +9,7 @@
   (hash-set :minute :hour :day :month :day-of-week))
 
 (defn valid-time-type
-  "Convert a time type to a valid value, else exception is thrown"
+  "Convert a time type to a valid value, else an exception is thrown"
   [type]
   (let [type-transformed (condp = type
                                 :minutes :minute
@@ -22,13 +22,10 @@
       type-transformed
       (throw ( Exception. (str "Not a valid time type: " type))))))
 
-(def all
-  "all")
-
 (defn to-day-of-week
   "Convert a named day of the week to a number representation"
   [day-of-week]
-  (if (= all day-of-week)
+  (if (= :all day-of-week)
     day-of-week
     (condp = day-of-week
         :sun 0
@@ -43,7 +40,7 @@
 (defn to-month
   "Convert a named month to a number representation"
   [month]
-  (if (= all month)
+  (if (= :all month)
     month
     (condp = month
         :jan 1
@@ -61,9 +58,9 @@
         (throw ( Exception. (str "Not a valid month: " month))))))
 
 (defn to-minute
-  "Convert to a valid minute number represenatation"
+  "Convert to a valid minute number representation"
   [minute]
-  (if (= all minute)
+  (if (= :all minute)
     minute
     (if (instance? Long minute)
       (if (and (>= minute 0)
@@ -73,9 +70,9 @@
       (throw ( Exception. (str "Not a valid minute: " minute))))))
 
 (defn to-hour
-  "Convert to a valid hour number represenatation"
+  "Convert to a valid hour number representation"
   [hour]
-  (if (= all hour)
+  (if (= :all hour)
     hour
     (if (instance? Long hour)
       (if (and (>= hour 0)
@@ -85,9 +82,9 @@
       (throw ( Exception. (str "Not a valid hour: " hour))))))
 
 (defn to-day
-  "Convert to a valid day number represenatation"
+  "Convert to a valid day number representation"
   [day]
-  (if (= all day)
+  (if (= :all day)
     day
     (if (instance? Long day)
       (if (and (>= day 1)
@@ -128,7 +125,7 @@
   "Create a schedule that runs every minute.
    Filters available: on, each, start-time, end-time"
   [& filters]
-  (apply (partial create-schedule all all all all all) filters))
+  (apply (partial create-schedule :all :all :all :all :all) filters))
 
 (defn hourly
   "Create a schedule that runs every hour.  Optionally specify
@@ -137,7 +134,7 @@
    minute after each hour.  If not specified, a default minute of 0 is
    used.  Filters available: at, on, each, start-time, end-time"
   [& filters]
-  (apply (partial create-schedule 0 all all all all) filters))
+  (apply (partial create-schedule 0 :all :all :all :all) filters))
 
 (defn daily
   "Create a schedule that runs once each day.  Optionally specify
@@ -147,7 +144,7 @@
    of 0 is used.  Filters available: at, on, each, start-time,
    end-time"
   [& filters]
-  (apply (partial create-schedule 0 0 all all all) filters))
+  (apply (partial create-schedule 0 0 :all :all :all) filters))
 
 (defn weekly
   "Create a schedule that runs once each week.  Optionally specify
@@ -158,7 +155,7 @@
    specified, a default day of Sunday and a default hour and minute of
    0 is used.  Filters available: at, on, each, start-time, end-time"
    [& filters]
-  (apply (partial create-schedule 0 0 all all 0) filters))
+  (apply (partial create-schedule 0 0 :all :all 0) filters))
 
 (defn monthly
   "Create a schedule that runs once every month.  Optionally specify
@@ -169,7 +166,7 @@
    and minute of 0 is used, and a default day of the 1st is used.
    Apply additional filters: at, on, each, start-time, end-time"
   [& filters]
-  (apply (partial create-schedule 0 0 1 all all) filters))
+  (apply (partial create-schedule 0 0 1 :all :all) filters))
 
 (defn set-schedule-values
   "Sets schedule values as a list, converting to number
@@ -313,7 +310,7 @@
   "Convert a schedule date field value representation to a cron entry"
   [item]
   (cond
-   (= all item) "*"
+   (= :all item) "*"
    (or (seq? item) (vector? item)) (clojure.string/join "," (map to-cron-entry item))
    (map? item) (if-let [interval (:interval item)]
                  (str "*/" interval)

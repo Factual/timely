@@ -49,7 +49,7 @@
   (is (= "20 9 * * 1,3"  (schedule-to-cron (on-days-of-week [:mon :wed] (at (hour 9) (minute 20))))))
   (is (= "*/2 * * * *"   (schedule-to-cron (every 2 :minutes))))
   (is (= "*/2 * */2 * *" (schedule-to-cron (every 2 :minutes (each 2 :days)))))
-  (is (= "1 2 3 4 *"     (schedule-to-cron (create-schedule 1 2 3 :apr all))))
+  (is (= "1 2 3 4 *"     (schedule-to-cron (create-schedule 1 2 3 :apr :all))))
   (is (= "* * * * *"     (schedule-to-cron (each-minute (start-time (* (dates-coerce/to-long (dates/now)) 2))))))
   (is (= "* * * * *"     (schedule-to-cron (each-minute (end-time 0)))))
   (is (= "* * * * *"     (schedule-to-cron (each-minute (start-time 0) (end-time (* (dates-coerce/to-long (dates/now)) 2))))))
