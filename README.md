@@ -18,11 +18,11 @@ See the "Define Schedules" section below for more examples of the schedule DSL.
 
 Define a scheduled-item using a schedule and a function to be executed on the defined schedule. For example:
 
-````clojure
+```clojure
 ;; Daily at 12:00am
 (scheduled-item (daily)
 (test-print-fn 1))
-````
+```
 
 (daily) creates a schedule that runs each day at 12:00am.  (test-print-fn 1) returns a function that will print a message.  The combined scheduled-item will print the message each day at 12:00am.
 
@@ -30,7 +30,7 @@ Specific start and end times can be optionally defined to ensure a repeated sche
 
 The following are further examples of the dsl for defining schedules:
 
-````clojure
+```clojure
 ;; Each day at 9:20am
 (scheduled-item (daily
                  (at (hour 9) (minute 20)))
@@ -102,7 +102,7 @@ The following are further examples of the dsl for defining schedules:
   (start-time (to-utc-timestamp (dates/date-time 2012 5 15 11 42)))
   (end-time (to-utc-timestamp (dates/date-time 2012 5 15 11 43))))
  (test-print-fn "specific-time-range"))
-````     
+```     
           
 ## Run Schedules
 
@@ -110,7 +110,7 @@ Use (start-scheduler) to enable scheduling in your application.
 
 Use start-schedule and end-schedule to start and stop schedules in your application:
 
-````clojure
+```clojure
 (start-scheduler)
 (let [item (scheduled-item
             (each-minute)
@@ -118,4 +118,4 @@ Use start-schedule and end-schedule to start and stop schedules in your applicat
   (let [sched-id (start-schedule item)]
     (Thread/sleep (* 1000 60 2))
     (end-schedule sched-id)))
-````
+```
