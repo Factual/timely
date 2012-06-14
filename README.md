@@ -1,9 +1,6 @@
 ## About
 
-Timely is useful for two main purposes:
-
-1. A clojure DSL for easier definition of cron strings
-2. A scheduling library using cron4j to execute a function according to a scheduled timetable.
+Timely is a Clojure library for scheduling tasks according to a timetable, as an alternative to cron.  To make this easy, Timely provides a DSL with a more intuitive syntax for definition of cron schedules.  Furthermore, it also allows optional specification of a valid time window within which a schedule will be run.  Consider including Timely in your project for a simple, lightweight approach to execute any function on a repeated schedule.
 
 ## Schedule DSL and Cron
 
