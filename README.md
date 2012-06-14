@@ -1,6 +1,21 @@
 ## About
 
-Timely is a Clojure library for scheduling tasks according to a timetable, as an alternative to cron.  To make this easy, Timely provides a DSL with a more intuitive syntax for definition of cron schedules.  Furthermore, it also allows optional specification of a valid time window within which a schedule will be run.  Consider including Timely in your project for a simple, lightweight approach to execute any function on a repeated schedule.
+Timely is a Clojure library for scheduling tasks according to a timetable, as an in-process alternative to cron.  To make this easy, Timely provides a DSL with a more intuitive syntax for definition of cron-style schedules.  Furthermore, it also allows optional specification of a valid time window within which a schedule will be run.  Consider including Timely in your project for a simple, lightweight approach to execute any function on a repeated schedule.
+
+## Installation
+
+The driver is hosted at Clojars. Just add this to your dependencies:
+```
+[factual/timely "0.0.2"]
+```
+
+## Setup
+
+```
+(ns yournamespace.core
+  (:require [timely.core :as timely]))
+  (timely/start-scheduler)
+```
 
 ## Schedule DSL and Cron
 
@@ -96,8 +111,8 @@ The following are further examples of the dsl for defining schedules:
 ;; Schedule only valid within a specific time range
 (scheduled-item
  (each-minute
-  (start-time (to-utc-timestamp (dates/date-time 2012 5 15 11 42)))
-  (end-time (to-utc-timestamp (dates/date-time 2012 5 15 11 43))))
+  (start-time (to-utc-timestamp 1337107320000))
+  (end-time (to-utc-timestamp 1337107380000)))
  (test-print-fn "specific-time-range"))
 ```     
           
