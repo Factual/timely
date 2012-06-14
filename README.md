@@ -4,7 +4,8 @@ Timely is a Clojure library for scheduling tasks according to a timetable, as an
 
 ## Installation
 
-The driver is hosted at Clojars. Just add this to your dependencies:
+The library is hosted at Clojars. Just add this to your dependencies:
+
 ```
 [factual/timely "0.0.2"]
 ```
@@ -33,7 +34,7 @@ Define a scheduled-item using a schedule and a function to be executed on the de
 ```clojure
 ;; Daily at 12:00am
 (scheduled-item (daily)
-(test-print-fn 1))
+				(test-print-fn 1))
 ```
 
 (daily) creates a schedule that runs each day at 12:00am.  (test-print-fn 1) returns a function that will print a message.  The combined scheduled-item will print the message each day at 12:00am.
@@ -111,8 +112,8 @@ The following are further examples of the dsl for defining schedules:
 ;; Schedule only valid within a specific time range
 (scheduled-item
  (each-minute
-  (start-time (to-utc-timestamp 1337107320000))
-  (end-time (to-utc-timestamp 1337107380000)))
+  (start-time 1337107320000)
+  (end-time 1337107380000))
  (test-print-fn "specific-time-range"))
 ```     
           
