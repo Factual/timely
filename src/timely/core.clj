@@ -283,16 +283,14 @@
   It is inclusive, meaning a schedule set to run exactly at the start
   time will run at the start time."
   [start-time]
-  (let [start-time (dates-coerce/from-long start-time)]
-    {:start-time start-time}))
+  {:start-time start-time})
 
 (defn end-time
   "Filter to specify an end time as a timestamp when the schedule will
   no longer run.  It is exclusive, meaning a schedule set to run
   exactly at the end time will not run at the end time."
   [end-time]
-  (let [end-time (dates-coerce/from-long end-time)]
-    {:end-time end-time}))
+  {:end-time end-time})
 
 (defn time-to-cron
   "Convert a timestamp to a cron string in the current time zone"
@@ -315,7 +313,7 @@
    (map? item) (if-let [interval (:interval item)]
                  (str "*/" interval)
                  (str (:start item) "-" (:end item)))
-   (instance? Long item) item
+   (instance? Number item) item
    :else (throw ( Exception. (str "Error in converting to cron: " item)))))
 
 (defn schedule-to-cron
@@ -349,24 +347,31 @@ on intervals defined in the schedule."
        end-time
        (dates/before? end-time
                       (dates/now)))
-    (info "Schedule is no longer valid")
+    ;; Schedule is no longer valid
+    nil
     (if (or (nil? start-time)
             (dates/before? start-time (dates/now)))
       (work)
-      (info "Waiting to start a schedule"))))
+      ;; Waiting to start a schedule
+      nil)))
 
 (defn begin-schedule
   "Begin a schedule, returning a unique id for the added schedule."
   [work cron start-time end-time]
   (.schedule SCHEDULER cron #(process-scheduled-item work start-time end-time)))
 
+(defn to-date-obj
+  [timestamp]
+  (when timestamp
+    (dates-coerce/from-long timestamp)))
+
 (defn start-schedule
   "Adds the specified schedule to the scheduler based on start/end
   time restrictions.  Returns a unique identifier for this schedule
   that can be used to later deschedule."
   [{:keys [schedule work]}]
-  (let [start_time (:start-time schedule)
-        end_time (:end-time schedule)
+  (let [start_time (to-date-obj (:start-time schedule))
+        end_time (to-date-obj (:end-time schedule))
         cron (schedule-to-cron schedule)
         now (dates/now)]
     (if (and end_time
